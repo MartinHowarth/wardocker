@@ -1,0 +1,8 @@
+- Create the basic container image for both CPU and RAM containers
+
+- Create the work-block creation mechanism (and verification)
+
+- Create the "game" part of the container.
+    - Integrate the work-block creation
+    - Define actions that CPU/RAM can take
+    - Create the (http? + json?) api to allow programs to control

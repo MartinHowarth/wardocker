@@ -1,0 +1,54 @@
+Container functionality:
+- Game manager spins up many containers.
+    - Those containers have a python server in them (see container types below)
+        - Those servers are the game components
+        - Can be accessed via an API (probably http?)
+            - Somehow secured so it can only be used from within the same container. Listen on localhost only?
+    - Also uploads users program to the container
+        - Runs a single command of users choice to start their program
+
+
+Container types:
+- CPU
+    - Fixed cpu speed (or something to limit processing power)
+    - Cannot store any finished work.
+- RAM
+    - Stores work done by CPU. Differing sizes
+
+CPU jobs:
+- Default
+    - Capture other containers
+        - Hard problem to generate block (similar to bitcoin block, but easier)
+        - Problem can be verified easily by game server
+        - 100 (depend on difficulty?) blocks to capture a container
+            - Opposing blocks annihilate when trying to capture a container
+            - half/half annihilate if multiple opponents
+    - Crack a password
+        - Different difficulties of passwords for different functions
+        - Gives another level of operations for this container only
+            - TBD if passwords are sequential, or are independent upgrades
+- Attack/defense
+    - Can attack a container to shatter it. Uses work blocks.
+        - Container loses owner and becomes numerous (smaller) independent containers.
+    - Can defend a *different* (i.e. a container can't defend itself) container by sending work blocks
+        - Defends against both capture and attack.
+        - TBD: Allow a buffer of some sort?
+- RAM blocks
+    - CPU can store solved blocks in a RAM container
+        - RAM containers can then send all blocks at once as a "rush" attack.
+        - Blocks remain in container if captured
+        - Lost if shattered
+- Discovery
+    - Discover what another container is (CPU/RAM)
+    - Discover it's size
+    - Discover it's current capture level for all players
+- Network permissions
+    - Gain control over networking. Allows player to hide their containers.
+        - Default is all containers can communicate to all other containers
+        - Must retain connection to wider net at some point if removing connections
+- Spawn child containers
+    - TBD
+- Full root access (to the container, not host)
+    - God weapon. Really hard password to crack (but still do-able in sensible time)
+    - Probably ends the game rapidly once unlocked
+    - Can just SSH to opponent containers and delete them.
