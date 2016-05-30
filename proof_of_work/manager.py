@@ -14,7 +14,7 @@ class WorkManager:
     def __init__(self, difficulty):
         self.difficulty = difficulty
         self.message = "Congratulations, you found an Easter egg. Have a cookie."
-        self.target = 2**64 / difficulty
+        self.target_maximum = 2 ** 64 / difficulty
 
     def _generate_payload(self):
         payload = (str(time.time()) + self.message).encode()
@@ -34,7 +34,7 @@ class WorkManager:
 
         payload = self._generate_payload()
         self.workers[worker_id] = payload
-        return payload, self.target
+        return payload, self.target_maximum
 
     def submit_work(self, worker_id, guess, nonce):
         payload = self.workers[worker_id]
@@ -44,9 +44,3 @@ class WorkManager:
             return True
         else:
             return False
-
-
-class WorkTicket:
-    def __init__(self, payload, target):
-        self.payload = payload
-        self.target = target

@@ -1,9 +1,12 @@
 import logging
 from ..communication.base_server import BaseServer, MyBaseRequestHandler
 from ..communication.base_client import BaseClient
+from ..communication import messages
 
 
 class BaseBlock:
+    game_manager_address = "127.0.0.1:8000"
+
     def __init__(self, action_mapping: dict, server_port):
         self.server_port = server_port
         self.action_mapping = action_mapping
@@ -17,4 +20,7 @@ class BaseBlock:
     def __exit__(self, exc_type, exc_val, exc_tb):
         print("ending...")
         self.server.end()
+
+    def message_manager(self, message: messages.BaseMessage):
+        self.client.send_post(self.game_manager_address, message)
 

@@ -31,6 +31,7 @@ class MyBaseRequestHandler(http.server.BaseHTTPRequestHandler):
 
         logging.info("Received raw POST data: %s" % data_string)
         message = messages.parse_raw_message(data_string)
+        message.from_address = ':'.join(self.client_address)
         self.handle_request(message)
 
     def handle_request(self, message: messages.BaseMessage):

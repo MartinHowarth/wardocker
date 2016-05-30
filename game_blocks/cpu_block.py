@@ -1,5 +1,6 @@
 from . import base_block
 from ..communication import messages
+from ..proof_of_work import worker
 import logging
 
 
@@ -10,6 +11,8 @@ class CPUBlock(base_block.BaseBlock):
         }
         self.target = ""
         super(CPUBlock, self).__init__(action_mapping, server_port)
+
+        self.worker = worker.Worker(self.message_manager)
 
     def send_message(self, message: messages.BaseMessage):
         self.client.send_post(self.target, message)

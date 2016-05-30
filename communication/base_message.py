@@ -9,6 +9,7 @@ class BaseMessage:
     def __init__(self, **kwargs):
         for kwarg in kwargs.items():
             setattr(self, kwarg[0], kwarg[1])
+        self.from_address = ""
 
     @classmethod
     def from_json(cls, raw_json):
