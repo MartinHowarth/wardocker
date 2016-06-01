@@ -6,7 +6,9 @@ from ..communication import messages
 class ManagerBlock(base_block.BaseBlock):
     def __init__(self, server_port=8000):
         action_mapping = {
-            'request_worker_id': self.receive_worker_id_request
+            'request_worker_id': self.receive_worker_id_request,
+            'request_work': self.receive_work_request,
+            'validate_action': self.validate_action,
         }
         self.target = ""
         super(ManagerBlock, self).__init__(action_mapping, server_port)
@@ -22,4 +24,10 @@ class ManagerBlock(base_block.BaseBlock):
         payload, target_max = self.work_manager.request_work(message.worker_id)
         response_message = messages.ProvideWorkMessage(payload, target_max)
         self.client.send_post(message.from_address, response_message)
-        
+
+    def validate_action(self, message: messages.BaseActionMessage):
+        if self.work_manager.verify_work(message.worker_id, message.guess, message.nonce):
+            response_message = messages.ValidActionResponse("")
+        else:
+            response_message = messages.InvalidActionResponse("")
+        self.client.send_post(message.from_address, response_message)

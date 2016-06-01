@@ -5,6 +5,8 @@ from ..communication import messages
 
 
 class Worker:
+    _work_poll_interval = 0.1
+
     def __init__(self, manager_contact_function):
         self.worker_id = None
         self.manager_contact_function = manager_contact_function
@@ -13,6 +15,7 @@ class Worker:
         self.guess = None
         self.nonce = None
         self._last_work_time = 0
+        self._awaiting_work = False
 
         self.request_work_id()
 
@@ -24,17 +27,21 @@ class Worker:
         self.worker_id = message.worker_id
 
     def request_work(self):
+        self._awaiting_work = True
         message = messages.RequestWorkMessage(self.worker_id)
         self.manager_contact_function(message)
-        # self.payload, self.target = self.work_manager.request_work(self.worker_id)
+
+        while self._awaiting_work:
+            time.sleep(self._work_poll_interval)
 
     def receive_work(self, message: messages.ProvideWorkMessage):
         self.payload = message.payload
         self.target_maximum = message.target_maximum
+        self._awaiting_work = False
 
     def do_work(self):
-        if self.payload is None:
-            return False
+        if self.payload is None or self.target_maximum is None:
+            return
 
         start_time = time.time()
         guess = 99999999999999999999
@@ -48,12 +55,8 @@ class Worker:
         self.nonce = nonce
         self.guess = guess
         self._last_work_time = end_time - start_time
-        return True
 
-    def submit_work(self):
-        message = messages.SubmitWorkMessage(self.worker_id, self.guess, self.nonce)
-        self.manager_contact_function(message)
-        # if self.work_manager.submit_work(self.worker_id, self.guess, self.nonce):
-        #     print("Success")
-        # else:
-        #     print("Failure")
+    def add_work_to_message(self, message: messages.BaseActionMessage):
+        message.worker_id = self.worker_id
+        message.guess = self.guess
+        message.nonce = self.nonce

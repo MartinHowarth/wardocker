@@ -1,14 +1,5 @@
 import json
-from .base_message import BaseMessage
-
-
-class SetTargetMessage(BaseMessage):
-    _message_parameters = ["target"]
-    message_type = "set_target"
-
-    def __init__(self, target: str):
-        super(SetTargetMessage, self).__init__()
-        self.target = target
+from .base_message import BaseMessage, BaseActionMessage
 
 
 class RequestWorkerIdMessage(BaseMessage):
@@ -47,15 +38,37 @@ class ProvideWorkMessage(BaseMessage):
         self.target_maximum = target_maximum
 
 
-class SubmitWorkMessage(BaseMessage):
-    _message_parameters = ["worker_id", "guess", "nonce"]
-    message_type = "submit_work"
+class VerifyActionMessage(BaseActionMessage):
+    _message_parameters = []
+    message_type = "validate_action"
 
-    def __init__(self, worker_id: int, guess: int, nonce: int):
-        super(SubmitWorkMessage, self).__init__()
-        self.worker_id = worker_id
-        self.guess = guess
-        self.nonce = nonce
+    def __init__(self, action_target: str):
+        super(VerifyActionMessage, self).__init__(action_target)
+
+
+class ValidActionResponse(BaseActionMessage):
+    _message_parameters = []
+    message_type = "valid_action"
+
+    def __init__(self, action_target: str):
+        super(ValidActionResponse, self).__init__(action_target)
+
+
+class InvalidActionResponse(BaseActionMessage):
+    _message_parameters = []
+    message_type = "invalid_action"
+
+    def __init__(self, action_target: str):
+        super(InvalidActionResponse, self).__init__(action_target)
+
+
+class SetTargetMessage(BaseActionMessage):
+    _message_parameters = ["target"]
+    message_type = "set_target"
+
+    def __init__(self, target: str, action_target: str):
+        super(SetTargetMessage, self).__init__(action_target)
+        self.target = target
 
 
 def parse_raw_message(raw_data: bytes) -> BaseMessage:
@@ -65,11 +78,11 @@ def parse_raw_message(raw_data: bytes) -> BaseMessage:
 
 
 message_mapping = {
-    'set_target': SetTargetMessage,
+    'valid_action': ValidActionResponse,
+    'invalid_action': InvalidActionResponse,
     'request_work': RequestWorkMessage,
-    'submit_work': SubmitWorkMessage,
     'provide_work': ProvideWorkMessage,
     'request_worker_id': RequestWorkerIdMessage,
     'provide_worker_id': ProvideWorkerIdMessage,
+    'set_target': SetTargetMessage,
 }
-

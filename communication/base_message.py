@@ -26,3 +26,15 @@ class BaseMessage:
         for parameter in self._message_parameters:
             di[parameter] = getattr(self, parameter)
         return di
+
+
+class BaseActionMessage(BaseMessage):
+    message_type = ""
+
+    def __init__(self, action_target: str):
+        self._message_parameters += ["worker_id", "guess", "nonce", "action", "action_target"]
+        super(BaseActionMessage, self).__init__()
+        self.worker_id = None
+        self.guess = None
+        self.nonce = None
+        self.action_target = action_target

@@ -3,7 +3,7 @@ import hashlib
 from struct import unpack, pack
 
 
-def verify_work(payload, guess, nonce):
+def verify_payload(payload, guess, nonce):
     return unpack('>Q', hashlib.sha512(hashlib.sha512(pack('>Q', nonce) + payload).digest()).digest()[0:8])[0] == guess
 
 
@@ -24,10 +24,7 @@ class WorkManager:
         self._worker_count += 1
         return self._worker_count
 
-    def request_work(self, worker_id=None):
-        if not worker_id:
-            return None, None
-
+    def request_work(self, worker_id):
         # Only allow each worker to have once workload at a time
         if worker_id in self.workers.keys():
             return None, None
@@ -36,9 +33,9 @@ class WorkManager:
         self.workers[worker_id] = payload
         return payload, self.target_maximum
 
-    def submit_work(self, worker_id, guess, nonce):
+    def verify_work(self, worker_id, guess, nonce):
         payload = self.workers[worker_id]
-        if verify_work(payload, guess, nonce):
+        if verify_payload(payload, guess, nonce):
             # Clear them from the current worker list
             del self.workers[worker_id]
             return True
