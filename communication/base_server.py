@@ -6,14 +6,14 @@ from . import messages
 
 
 class MyBaseRequestHandler(http.server.BaseHTTPRequestHandler):
-    def __init__(self, action_mapping: dict=None, *args, **kwargs):
-        self.action_mapping = action_mapping
+    def __init__(self, target_method: callable=None, *args, **kwargs):
+        self.target_method = target_method
         super(MyBaseRequestHandler, self).__init__(*args, **kwargs)
 
     @classmethod
-    def specify_action_mapping(cls, action_mapping):
+    def specify_target_method(cls, target_method):
         def create_handler(*args, **kwargs):
-            return cls(action_mapping, *args, **kwargs)
+            return cls(target_method, *args, **kwargs)
         return create_handler
 
     def respond_ok(self):
@@ -24,7 +24,11 @@ class MyBaseRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         """
         Receive and handle a POST message.
-        :return:
+
+        Expectation is that the POST will contain a JSON encoded dictionary representing a game message.
+
+        When the message has been parsed, call the method specified at instantiation time with the message as the
+        only parameter.
         """
         self.respond_ok()
         data_string = self.rfile.read(int(self.headers['Content-Length']))
@@ -32,10 +36,7 @@ class MyBaseRequestHandler(http.server.BaseHTTPRequestHandler):
         logging.info("Received raw POST data: %s" % data_string)
         message = messages.parse_raw_message(data_string)
         message.from_address = ':'.join(self.client_address)
-        self.handle_request(message)
-
-    def handle_request(self, message: messages.BaseMessage):
-        self.action_mapping[message.message_type](message)
+        self.target_method(message)
 
 
 class BaseServer:

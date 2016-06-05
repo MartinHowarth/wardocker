@@ -1,10 +1,11 @@
 import json
+import inspect
+import sys
 from .base_message import BaseMessage, BaseActionMessage
 
 
 class RequestWorkerIdMessage(BaseMessage):
     _message_parameters = []
-    message_type = "request_worker_id"
 
     def __init__(self):
         super(RequestWorkerIdMessage, self).__init__()
@@ -12,7 +13,6 @@ class RequestWorkerIdMessage(BaseMessage):
 
 class ProvideWorkerIdMessage(BaseMessage):
     _message_parameters = ["worker_id"]
-    message_type = "provide_worker_id"
 
     def __init__(self, worker_id: int):
         super(ProvideWorkerIdMessage, self).__init__()
@@ -21,7 +21,6 @@ class ProvideWorkerIdMessage(BaseMessage):
 
 class RequestWorkMessage(BaseMessage):
     _message_parameters = ["worker_id"]
-    message_type = "request_work"
 
     def __init__(self, worker_id: int):
         super(RequestWorkMessage, self).__init__()
@@ -30,7 +29,6 @@ class RequestWorkMessage(BaseMessage):
 
 class ProvideWorkMessage(BaseMessage):
     _message_parameters = ["payload", "target_maximum"]
-    message_type = "provide_work"
 
     def __init__(self, payload: bytes, target_maximum: int):
         super(ProvideWorkMessage, self).__init__()
@@ -38,37 +36,71 @@ class ProvideWorkMessage(BaseMessage):
         self.target_maximum = target_maximum
 
 
-class VerifyActionMessage(BaseActionMessage):
+class TerminationRequestMessage(BaseMessage):
     _message_parameters = []
-    message_type = "validate_action"
 
-    def __init__(self, action_target: str):
-        super(VerifyActionMessage, self).__init__(action_target)
+    def __init__(self):
+        super(TerminationRequestMessage, self).__init__()
 
 
-class ValidActionResponse(BaseActionMessage):
+class ValidateActionMessage(BaseMessage):
     _message_parameters = []
-    message_type = "valid_action"
 
-    def __init__(self, action_target: str):
-        super(ValidActionResponse, self).__init__(action_target)
+    def __init__(self):
+        super(ValidateActionMessage, self).__init__()
 
 
-class InvalidActionResponse(BaseActionMessage):
+class ValidActionResponse(BaseMessage):
     _message_parameters = []
-    message_type = "invalid_action"
 
-    def __init__(self, action_target: str):
-        super(InvalidActionResponse, self).__init__(action_target)
+    def __init__(self):
+        super(ValidActionResponse, self).__init__()
 
 
-class SetTargetMessage(BaseActionMessage):
-    _message_parameters = ["target"]
-    message_type = "set_target"
+class InvalidActionResponse(BaseMessage):
+    _message_parameters = []
 
-    def __init__(self, target: str, action_target: str):
-        super(SetTargetMessage, self).__init__(action_target)
-        self.target = target
+    def __init__(self):
+        super(InvalidActionResponse, self).__init__()
+
+
+class QueryResponseMessage(BaseMessage):
+    _message_parameters = ['owner', 'ownership_level', 'destruction_level']
+
+    def __init__(self, owner, ownership_level, destruction_level):
+        super(QueryResponseMessage, self).__init__()
+        self.owner = owner
+        self.ownership_level = ownership_level
+        self.destruction_level = destruction_level
+
+
+class QueryStatusMessage(BaseActionMessage):
+    _message_parameters = []
+
+    def __init__(self, action_target_ip_port: str):
+        super(QueryStatusMessage, self).__init__(action_target_ip_port)
+
+
+class ClaimOwnershipMessage(BaseActionMessage):
+    _message_parameters = []
+
+    def __init__(self, action_target_ip_port: str, owner_id: str):
+        super(ClaimOwnershipMessage, self).__init__(action_target_ip_port)
+        self.owner_id = owner_id
+
+
+class DestroyMessage(BaseActionMessage):
+    _message_parameters = []
+
+    def __init__(self, action_target_ip_port: str):
+        super(DestroyMessage, self).__init__(action_target_ip_port)
+
+
+class RepairMessage(BaseActionMessage):
+    _message_parameters = []
+
+    def __init__(self, action_target_ip_port: str):
+        super(RepairMessage, self).__init__(action_target_ip_port)
 
 
 def parse_raw_message(raw_data: bytes) -> BaseMessage:
@@ -77,12 +109,6 @@ def parse_raw_message(raw_data: bytes) -> BaseMessage:
     return cls.from_dict(data)
 
 
-message_mapping = {
-    'valid_action': ValidActionResponse,
-    'invalid_action': InvalidActionResponse,
-    'request_work': RequestWorkMessage,
-    'provide_work': ProvideWorkMessage,
-    'request_worker_id': RequestWorkerIdMessage,
-    'provide_worker_id': ProvideWorkerIdMessage,
-    'set_target': SetTargetMessage,
-}
+# Create mapping of "class_name": class for all messages
+message_mapping = {cls.__name__: cls for _, cls in inspect.getmembers(sys.modules[__name__])
+                   if inspect.isclass(cls) and issubclass(cls, BaseMessage)}

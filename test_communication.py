@@ -1,10 +1,10 @@
-from game_blocks.base_block import CPUBlock
+from game_blocks.action_generation_block import ActionGenerationBlock
 from communication.messages import SetTargetMessage
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
-with CPUBlock(server_port=80) as cpu0, CPUBlock(server_port=81) as cpu1, CPUBlock(server_port=82) as cpu2:
+with ActionGenerationBlock(server_port=80) as cpu0, ActionGenerationBlock(server_port=81) as cpu1, ActionGenerationBlock(server_port=82) as cpu2:
     print(id(cpu0), id(cpu1), id(cpu2))
 
     target_cpu0 = SetTargetMessage("127.0.0.1:80")
