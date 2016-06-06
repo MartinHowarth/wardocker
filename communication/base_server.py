@@ -2,7 +2,7 @@ import logging
 import http.server
 import socketserver
 import threading
-from . import messages
+from communication import messages
 
 
 class MyBaseRequestHandler(http.server.BaseHTTPRequestHandler):

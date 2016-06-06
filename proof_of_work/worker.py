@@ -1,7 +1,7 @@
 import time
 import hashlib
 from struct import unpack, pack
-from ..communication import messages
+from communication import messages
 
 
 class Worker:

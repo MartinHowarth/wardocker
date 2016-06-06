@@ -1,7 +1,7 @@
 import logging
-from ..communication.base_server import BaseServer, MyBaseRequestHandler
-from ..communication.base_client import BaseClient
-from ..communication import messages
+from communication.base_server import BaseServer, MyBaseRequestHandler
+from communication.base_client import BaseClient
+from communication import messages
 
 
 class BaseBlock:
@@ -56,3 +56,8 @@ class BaseBlock:
         :param reply: Message to send back
         """
         self.send_message(inbound.from_address, reply)
+    
+    def _generate_response_function(self, inbound_message):
+        def response_function(response: messages.BaseMessage):
+            self.reply_to_message(inbound_message, response)
+        return response_function

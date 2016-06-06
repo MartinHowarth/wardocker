@@ -1,4 +1,5 @@
-# docker daemon -H tcp://0.0.0.0:2375
+# docker / tcuser
+# sudo pkill docker; sudo docker daemon -H tcp://0.0.0.0:2375
 import logging
 import docker
 from docker_manager.base_container import HelloWorldContainer

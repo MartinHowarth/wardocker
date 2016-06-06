@@ -1,7 +1,7 @@
 import json
 import inspect
 import sys
-from .base_message import BaseMessage, BaseActionMessage
+from communication.base_message import BaseMessage, BaseActionMessage
 
 
 class RequestWorkerIdMessage(BaseMessage):
@@ -44,10 +44,13 @@ class TerminationRequestMessage(BaseMessage):
 
 
 class ValidateActionMessage(BaseMessage):
-    _message_parameters = []
+    _message_parameters = ["worker_id", "guess", "nonce"]
 
-    def __init__(self):
+    def __init__(self, worker_id: int, guess: int, nonce: int):
         super(ValidateActionMessage, self).__init__()
+        self.worker_id = worker_id
+        self.guess = guess
+        self.nonce = nonce
 
 
 class ValidActionResponse(BaseMessage):

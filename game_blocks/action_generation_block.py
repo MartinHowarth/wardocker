@@ -1,6 +1,6 @@
-from . import targettable_block
-from ..communication import messages
-from ..proof_of_work import worker
+from game_blocks import targettable_block
+from communication import messages
+from proof_of_work import worker
 import logging
 
 
@@ -24,3 +24,9 @@ class ActionGenerationBlock(targettable_block.TargettableBlock):
         self.worker.do_work()
         self.worker.add_work_to_message(action_message)
         self.send_message(action_message.action_target_ip_port, action_message)
+
+    def receive_work(self, message: messages.ProvideWorkMessage):
+        pass
+
+    def receive_worker_id(self, message: messages.ProvideWorkerIdMessage):
+        pass

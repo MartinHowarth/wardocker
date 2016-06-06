@@ -1,6 +1,6 @@
 import time
-from . import base_block
-from ..communication import messages
+from game_blocks import base_block
+from communication import messages
 
 
 class TargettableBlock(base_block.BaseBlock):
@@ -123,10 +123,11 @@ class TargettableBlock(base_block.BaseBlock):
         """
         self._awaiting_validation = True
         self._action_validated = False
-        new_message = messages.ValidateActionMessage()
-        new_message.worker_id = message.worker_id
-        new_message.guess = message.guess
-        new_message.nonce = message.nonce
+        new_message = messages.ValidateActionMessage(
+            message.worker_id,
+            message.guess,
+            message.nonce
+        )
         self.send_message_to_manager(new_message)
 
         while self._awaiting_validation:

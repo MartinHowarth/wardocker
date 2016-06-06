@@ -1,6 +1,6 @@
 import requests
 import logging
-from . import base_message
+from communication import base_message
 
 
 class BaseClient:
