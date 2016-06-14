@@ -24,14 +24,14 @@ class TargettableBlock(base_block.BaseBlock):
             Format of {message: method}
         :param server_port: Port to listen for HTTP on.
         """
-        action_mapping += {
+        action_mapping.update({
             messages.ValidActionResponse: self.handle_action_validated_message,
             messages.InvalidActionResponse: self.handle_action_invalidated_message,
             messages.QueryStatusMessage: self.handle_query_message,
             messages.ClaimOwnershipMessage: self.handle_ownership_message,
             messages.DestroyMessage: self.handle_destroy_message,
             messages.RepairMessage: self.handle_repair_message,
-        }
+        })
         super(TargettableBlock, self).__init__(action_mapping, server_port)
 
         self._awaiting_validation = False

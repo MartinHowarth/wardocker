@@ -1,6 +1,5 @@
 import time
 import hashlib
-from communication import messages
 from struct import unpack, pack
 
 
@@ -33,38 +32,42 @@ class WorkManager:
         payload = (str(time.time()) + self.message).encode()
         return hashlib.sha512(payload).digest()
 
-    def request_worker_id(self, response_function: callable) -> \
-            messages.ProvideWorkerIdMessage:
+    def request_worker_id(self) -> int:
         """
         Generate and respond with a unique worker id.
+        Worker ID should never be 0.
         """
         self._worker_count += 1
-        response_function(messages.ProvideWorkerIdMessage(self._worker_count))
+        return self._worker_count
 
-    def request_work(self, message: messages.RequestWorkMessage, response_function: callable):
+    def request_work(self, worker_id: int) -> (bytes, int):
         """
         Get and return a work task.
         Each worker is only allowed one task at once.
         A task consists of a payload, and the target maximum value.
+        :param worker_id: ID of the worker requesting work.
         """
         # Only allow each worker to have once workload at a time
-        if message.worker_id in self.workers.keys():
-            response_function(messages.ProvideWorkMessage(b'', 0))
+        if worker_id in self.workers.keys():
+            return b'', 0
 
         payload = self._generate_payload()
-        self.workers[message.worker_id] = payload
-        response_function(messages.ProvideWorkMessage(payload, self.target_maximum))
+        self.workers[worker_id] = payload
+        return payload, self.target_maximum
 
-    def validate_work(self, message: messages.ValidateActionMessage, response_function: callable):
+    def validate_work(self, worker_id: int, guess: int, nonce: int) -> bool:
         """
         Check that the given solution to a task correctly solves the task given to that worker.
+        :param worker_id: ID of the worker who did the work
+        :param guess: Guess part of the solution.
+        :param nonce: Nonce part of the solution.
         """
-        if message.worker_id not in self.workers.keys():
-            response_function(messages.InvalidActionResponse())
-        payload = self.workers[message.worker_id]
-        if verify_payload(payload, message.guess, message.nonce):
+        if worker_id not in self.workers.keys():
+            return False
+        payload = self.workers[worker_id]
+        if verify_payload(payload, guess, nonce):
             # Clear them from the current worker-task mapping.
-            del self.workers[message.worker_id]
-            response_function(messages.ValidActionResponse())
+            del self.workers[worker_id]
+            return True
         else:
-            response_function(messages.InvalidActionResponse())
+            return False

@@ -20,14 +20,18 @@ class ManagerBlock(base_block.BaseBlock):
         A worker has requested a worker ID. Respond with a unique one.
         :param message:
         """
-        self.work_manager.request_worker_id(self._generate_response_function(message))
+        worker_id = self.work_manager.request_worker_id()
+        response = messages.ProvideWorkerIdMessage(worker_id)
+        self.reply_to_message(message, response)
 
     def receive_work_request(self, message: messages.RequestWorkMessage):
         """
         A worker has requested some work to do. Sent it some.
         :param message:
         """
-        self.work_manager.request_work(message, self._generate_response_function(message))
+        worker_id = message.worker_id
+        response = messages.ProvideWorkMessage(*self.work_manager.request_work(worker_id))
+        self.reply_to_message(message, response)
 
     def validate_action(self, message: messages.ValidateActionMessage):
         """
@@ -36,4 +40,8 @@ class ManagerBlock(base_block.BaseBlock):
         Send an appropriate response based on the outcome.
         :param message:
         """
-        self.work_manager.validate_work(message, self._generate_response_function(message))
+        result = self.work_manager.validate_work(message.worker_id, message.guess, message.nonce)
+        if result:
+            self.reply_to_message(message, messages.ValidActionResponse())
+        else:
+            self.reply_to_message(message, messages.InvalidActionResponse())
