@@ -15,12 +15,12 @@ class TestWorker(TestCase):
 
     def test_receive_work_id(self):
         message = messages.ProvideWorkerIdMessage(10)
-        self.worker.receive_work_id(message)
+        self.worker._new_worker_id(message)
         self.assertEqual(self.worker.worker_id, 10)
 
     def test_request_work(self):
         message = messages.ProvideWorkerIdMessage(10)
-        self.worker.receive_work_id(message)
+        self.worker._new_worker_id(message)
         # Make sure we don't get stuck waiting for work by forcing awaiting_work to be False.
         type(self.worker)._awaiting_work = PropertyMock(return_value=False)
 
@@ -30,7 +30,7 @@ class TestWorker(TestCase):
 
     def test_receive_work(self):
         message = messages.ProvideWorkMessage(b"payload", 1000000)
-        self.worker.receive_work(message)
+        self.worker.get_work(message)
         self.assertEqual(self.worker.payload, b"payload")
         self.assertEqual(self.worker.target_maximum, 1000000)
 

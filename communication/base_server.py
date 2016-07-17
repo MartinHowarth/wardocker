@@ -3,6 +3,7 @@ import http.server
 import socketserver
 import threading
 from communication import messages
+import json
 
 
 class MyBaseRequestHandler(http.server.BaseHTTPRequestHandler):
@@ -16,8 +17,9 @@ class MyBaseRequestHandler(http.server.BaseHTTPRequestHandler):
             return cls(target_method, *args, **kwargs)
         return create_handler
 
-    def respond_ok(self):
-        self.send_response(http.server.HTTPStatus.OK)
+    def respond(self, response):
+        print("Responding with: %s" % response)
+        self.send_response(response)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
@@ -30,18 +32,19 @@ class MyBaseRequestHandler(http.server.BaseHTTPRequestHandler):
         When the message has been parsed, call the method specified at instantiation time with the message as the
         only parameter.
         """
-        self.respond_ok()
         data_string = self.rfile.read(int(self.headers['Content-Length']))
 
         logging.info("Received raw POST data: %s" % data_string)
-        message = messages.parse_raw_message(data_string)
-        message.from_address = ':'.join(self.client_address)
-        self.target_method(message)
+        message = json.loads(data_string.decode('utf-8'))
+        response = self.target_method(message)
+        if response is None:
+            response = http.server.HTTPStatus.OK
+        self.respond(response)
 
 
 class BaseServer:
-    def __init__(self, request_handler: MyBaseRequestHandler, port=80):
-        self._port = port
+    def __init__(self, request_handler: MyBaseRequestHandler):
+        self._port = 8000
         self._handler_class = request_handler
         self.http_daemon = socketserver.TCPServer(("", self._port), self._handler_class)
         self.server_thread = threading.Thread(target=self.http_daemon.serve_forever)

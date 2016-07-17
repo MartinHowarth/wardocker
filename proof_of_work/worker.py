@@ -1,9 +1,14 @@
 import time
 import hashlib
+import Pyro4
+import base64
 from struct import unpack, pack
 
 
+@Pyro4.expose
 class Worker:
+    work_manager = Pyro4.Proxy("PYRONAME:manager.work_manager")
+
     def __init__(self):
         self.worker_id = None
         self.payload = None
@@ -11,19 +16,23 @@ class Worker:
         self.guess = None
         self.nonce = None
         self._last_work_time = 0
+        self._new_worker_id()
 
-    def receive_work_id(self, worker_id: int):
-        self.worker_id = worker_id
+    def _new_worker_id(self):
+        self.worker_id = self.work_manager.generate_worker_id()
 
-    def receive_work(self, payload: bytes, target_maximum: int):
+    def get_work(self):
         """
         Receive a task.
         Unblocks :func:`~Worker.request_work`
         :param payload: Payload of the work to be solved.
         :param target_maximum: Target maximum of the work to be solved (determines difficulty).
         """
-        self.payload = payload
-        self.target_maximum = target_maximum
+        payload, self.target_maximum = self.work_manager.generate_work(self.worker_id)
+
+        # Pyro4 (via serpent serialiser, I think) returns bytes as a base64 encoded string
+        #  - we need to convert it back
+        self.payload = base64.b64decode(payload['data'])
 
     def do_work(self):
         """
