@@ -1,5 +1,6 @@
 import time
 import hashlib
+import Pyro4
 from struct import unpack, pack
 
 
@@ -7,6 +8,7 @@ def verify_payload(payload: bytes, guess: int, nonce: int):
     return unpack('>Q', hashlib.sha512(hashlib.sha512(pack('>Q', nonce) + payload).digest()).digest()[0:8])[0] == guess
 
 
+@Pyro4.expose
 class WorkManager:
     """
     Hands out tasks to workers. Tasks are hash-cracking exercises which are hard to solve, but easy to check.
@@ -32,15 +34,15 @@ class WorkManager:
         payload = (str(time.time()) + self.message).encode()
         return hashlib.sha512(payload).digest()
 
-    def request_worker_id(self) -> int:
+    def generate_worker_id(self) -> int:
         """
-        Generate and respond with a unique worker id.
+        Generate and a unique worker id.
         Worker ID should never be 0.
         """
         self._worker_count += 1
         return self._worker_count
 
-    def request_work(self, worker_id: int) -> (bytes, int):
+    def generate_work(self, worker_id: int) -> (bytes, int):
         """
         Get and return a work task.
         Each worker is only allowed one task at once.
@@ -53,6 +55,7 @@ class WorkManager:
 
         payload = self._generate_payload()
         self.workers[worker_id] = payload
+        print(payload)
         return payload, self.target_maximum
 
     def validate_work(self, worker_id: int, guess: int, nonce: int) -> bool:

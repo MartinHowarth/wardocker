@@ -18,21 +18,15 @@ class TargettableBlock(base_block.BaseBlock):
     _validation_poll_interval = 0.1
     _max_ownership_level = 100
 
-    def __init__(self, action_mapping: dict, server_port):
-        """
-        :param action_mapping: Mapping of which method gets called when a particular message is received.
-            Format of {message: method}
-        :param server_port: Port to listen for HTTP on.
-        """
-        action_mapping.update({
-            messages.ValidActionResponse: self.handle_action_validated_message,
-            messages.InvalidActionResponse: self.handle_action_invalidated_message,
-            messages.QueryStatusMessage: self.handle_query_message,
-            messages.ClaimOwnershipMessage: self.handle_ownership_message,
-            messages.DestroyMessage: self.handle_destroy_message,
-            messages.RepairMessage: self.handle_repair_message,
+    def __init__(self):
+        super(TargettableBlock, self).__init__()
+        self.action_mapping.update({
+            'query': self.handle_query,
+            'claim': self.handle_ownership,
+            'destroy': self.handle_destroy,
+            'repair': self.handle_repair
+            ,
         })
-        super(TargettableBlock, self).__init__(action_mapping, server_port)
 
         self._awaiting_validation = False
         self._action_validated = False

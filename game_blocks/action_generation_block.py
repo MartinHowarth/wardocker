@@ -2,6 +2,7 @@ from game_blocks import targettable_block
 from communication import messages
 from proof_of_work import worker
 import logging
+import Pyro4
 import time
 
 
@@ -11,23 +12,23 @@ class ActionGenerationBlock(targettable_block.TargettableBlock):
     """
     _work_poll_interval = 0.1
 
-    def __init__(self, server_port=80):
+    def __init__(self, server_port=8000):
         action_mapping = {
         }
-        super(ActionGenerationBlock, self).__init__(action_mapping, server_port)
+        super(ActionGenerationBlock, self).__init__(server_port)
 
         self.worker = worker.Worker()
         self.request_worker_id()
         self._awaiting_work = False
 
-    def perform_action(self, action_message: messages.BaseActionMessage):
+    def perform_action(self, target: Pyro4.Proxy, action):
         """
         Gets, solves and attaches work to an action message, then sends it to the target.
         :param action_message: Action message to perform
         """
-        self.request_work()
+        self.worker.get_work()
         self.worker.do_work()
-        self.add_work_to_message(action_message)
+        self.add_work_to_action(action)
         self.send_message(action_message.action_target_ip_port, action_message)
 
     def request_work(self):
@@ -47,7 +48,7 @@ class ActionGenerationBlock(targettable_block.TargettableBlock):
         self.send_message_to_manager(messages.RequestWorkerIdMessage())
 
     def receive_worker_id(self, message: messages.ProvideWorkerIdMessage):
-        self.worker.receive_work_id(message.worker_id)
+        self.worker._new_worker_id(message.worker_id)
 
     def add_work_to_message(self, message: messages.BaseActionMessage):
         """
