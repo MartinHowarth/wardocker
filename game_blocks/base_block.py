@@ -16,6 +16,9 @@ class BaseBlock:
         self.server_port = server_port
         self.action_mapping = action_mapping
 
+        self.server = None
+        self.client = None
+
     def __enter__(self):
         self.server = BaseServer(MyBaseRequestHandler.specify_target_method(self.receive_message),
                                  port=self.server_port)
